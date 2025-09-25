@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    IconButton, CircularProgress, TablePagination, Stack
+    IconButton, CircularProgress, TablePagination, Stack, Tooltip
 } from '@mui/material';
 import {alpha} from '@mui/material/styles';
 import DoneIcon from '@mui/icons-material/Done';
@@ -16,6 +16,8 @@ import {
     applyRowStatus
 } from '../store/tableSlice.js';
 import {openCommentModal} from '../store/uiSlice.js';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import { Link as RouterLink } from 'react-router-dom';
 
 // ВНЕ компонента — нет useMemo после условных return
 const COLUMNS = Array.from({length: 40}, (_, i) => `col${i + 1}`);
@@ -200,15 +202,50 @@ export default function DataTable() {
                 </Table>
             </TableContainer>
 
-            {/* Пагинация снизу */}
-            <Box sx={{
-                px: 2,
-                py: 1,
-                display: 'flex',
-                justifyContent: 'flex-end',
-                borderTop: '1px solid',
-                borderColor: 'divider'
-            }}>
+            {/*/!* Пагинация снизу *!/*/}
+            {/*<Box sx={{*/}
+            {/*    px: 2,*/}
+            {/*    py: 1,*/}
+            {/*    display: 'flex',*/}
+            {/*    justifyContent: 'flex-end',*/}
+            {/*    borderTop: '1px solid',*/}
+            {/*    borderColor: 'divider'*/}
+            {/*}}>*/}
+            {/*    <TablePagination*/}
+            {/*        component="div"*/}
+            {/*        count={rowCount}*/}
+            {/*        page={page}*/}
+            {/*        rowsPerPage={pageSize}*/}
+            {/*        onPageChange={(_, newPage) => dispatch(setPage(newPage))}*/}
+            {/*        onRowsPerPageChange={(e) => dispatch(setPageSize(parseInt(e.target.value, 10)))}*/}
+            {/*        rowsPerPageOptions={[10, 25, 50, 100]}*/}
+            {/*        labelRowsPerPage="Строк на странице"*/}
+            {/*    />*/}
+            {/*</Box>*/}
+            <Box
+                sx={{
+                    px: 2,
+                    py: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                }}
+            >
+                {/* СЛЕВА: Выход */}
+                <Tooltip title="Выход">
+                    <IconButton
+                        component={RouterLink}
+                        to="/login"
+                        size="small"
+                        sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}
+                    >
+                        <LogoutRoundedIcon />
+                    </IconButton>
+                </Tooltip>
+
+                {/* СПРАВА: Пагинация */}
                 <TablePagination
                     component="div"
                     count={rowCount}
@@ -220,6 +257,7 @@ export default function DataTable() {
                     labelRowsPerPage="Строк на странице"
                 />
             </Box>
+
         </>
     );
 }

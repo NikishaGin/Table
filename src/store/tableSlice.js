@@ -49,7 +49,8 @@ export const applyRowStatus = ({ rowId, status }) => (dispatch, getState) => {
     const nextStatus = (row.status === status) ? 'none' : status;
     if (nextStatus === 'invalid' && (!row.comment || !row.comment.trim())) {
         dispatch(showAlert({ severity:'warning', message:'Чтобы поставить «Некорректная», укажите причину.' }));
-        dispatch(openCommentModal(rowId));
+        // dispatch(openCommentModal(rowId));
+        dispatch(openCommentModal({ rowId, intent: 'invalid' }));
         return;
     }
     dispatch(setRowStatus({ rowId, status: nextStatus }));

@@ -1,34 +1,25 @@
 import React from 'react';
-import { Button, Menu, MenuItem } from '@mui/material';
+import { Button } from '@mui/material';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { useSelector } from 'react-redux';
 import { selectFilteredRows } from '../selectors/tableSelectors.js';
-import { exportCSV, exportJSON } from '../utils/export.js';
-
+import { exportXLSX } from '../utils/export.js';
 
 export default function ExportMenu() {
-    const rows = useSelector(selectFilteredRows);
-    const [anchorEl, setAnchorEl] = React.useState(null);
-    const open = Boolean(anchorEl);
+    const rows = useSelector(selectFilteredRows); // или: useSelector(s => s.table.rows)
 
-    const handleClick = (e) => setAnchorEl(e.currentTarget);
-    const handleClose = () => setAnchorEl(null);
-
-    const doExport = (type) => () => {
-        if (type === 'csv') exportCSV(rows);
-        else exportJSON(rows);
-        handleClose();
+    const handleExport = () => {
+        if (!rows?.length) return;
+        exportXLSX(rows);
     };
 
     return (
-        <>
-            <Button startIcon={<FileDownloadIcon />} variant="outlined" onClick={handleClick}>
-                Экспорт
-            </Button>
-            <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-                <MenuItem onClick={doExport('csv')}>CSV</MenuItem>
-                <MenuItem onClick={doExport('json')}>JSON</MenuItem>
-            </Menu>
-        </>
+        <Button
+            startIcon={<FileDownloadIcon />}
+            variant="outlined"
+            onClick={handleExport}
+        >
+            Экспорт
+        </Button>
     );
 }

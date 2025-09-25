@@ -1,58 +1,35 @@
-// Сериализация текущей выборки в JSON/CSV и скачивание без сторонних библиотек
+import * as XLSX from 'xlsx';
 
+/**
+ * Экспорт текущей выборки в Excel.
+ * В лист "rows" — строки со статусом и комментарием.
+ * В лист "flags" — список подсвеченных ячеек (rowId, column).
+ */
+export function exportXLSX(rows, filename = `export_${new Date().toISOString().slice(0,10)}.xlsx`) {
+    // Основные данные
+    const main = rows.map(r => ({
+        id: r.id,
+        status: r.status || 'none',
+        comment: r.comment || '',
+        ...r.cols, // col1..col40
+    }));
 
-export function downloadBlob(content, filename, mime = 'application/octet-stream') {
-    const blob = new Blob([content], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-}
+    const wb = XLSX.utils.book_new();
+    const wsMain = XLSX.utils.json_to_sheet(main);
+    XLSX.utils.book_append_sheet(wb, wsMain, 'rows');
 
-
-export function rowsToExportShape(rows) {
-// Приводим к плоскому виду: id, col1..col40, status, comment, cellFlags(JSON)
-    return rows.map(r => {
-        const flat = { id: r.id, ...r.cols, status: r.status, comment: r.comment };
-        const flaggedCols = Object.entries(r.cellFlags || {})
-            .filter(([, v]) => !!v)
-            .map(([k]) => k);
-        flat.cellFlags = flaggedCols; // массив имён колонок
-        return flat;
-    });
-}
-
-
-export function exportJSON(rows) {
-    const data = rowsToExportShape(rows);
-    downloadBlob(JSON.stringify(data, null, 2), 'export.json', 'application/json');
-}
-
-
-export function exportCSV(rows) {
-    const data = rowsToExportShape(rows);
-    if (!data.length) {
-        downloadBlob('', 'export.csv', 'text/csv;charset=utf-8;');
-        return;
+    // Лист с флагами ячеек (если есть)
+    const flags = [];
+    for (const r of rows) {
+        const cf = r.cellFlags || {};
+        for (const [colKey, isFlagged] of Object.entries(cf)) {
+            if (isFlagged) flags.push({ id: r.id, column: colKey });
+        }
     }
-    const headers = Object.keys(data[0]);
-    const csv = [headers.join(',')]
-        .concat(
-            data.map(row => headers.map(h => serializeCsvCell(row[h])).join(','))
-        )
-        .join('\n');
-    downloadBlob(csv, 'export.csv', 'text/csv;charset=utf-8;');
-}
+    if (flags.length) {
+        const wsFlags = XLSX.utils.json_to_sheet(flags);
+        XLSX.utils.book_append_sheet(wb, wsFlags, 'flags');
+    }
 
-
-function serializeCsvCell(v) {
-    if (v == null) return '';
-    const s = Array.isArray(v) ? JSON.stringify(v) : String(v);
-// Экранируем запятые/кавычки/переводы строк
-    if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
-    return s;
+    XLSX.writeFile(wb, filename);
 }

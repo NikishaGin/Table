@@ -1,19 +1,20 @@
+// src/App.jsx
 import React from 'react';
 import { Box, Alert, Snackbar } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
+import { Routes, Route, Navigate } from 'react-router-dom';
+
 import TopBar from './components/TopBar.jsx';
 import DataTable from './components/DataTable.jsx';
 import CommentDialog from './components/CommentDialog.jsx';
+import LoginPage from './pages/LoginPage.jsx';
 import { hideAlert } from './store/uiSlice.js';
 
-
-export default function App() {
+// Отдельный лейаут для главной страницы
+function MainLayout() {
     const dispatch = useDispatch();
     const alert = useSelector(s => s.ui.alert);
-
-
     const handleClose = () => dispatch(hideAlert());
-
 
     return (
         <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -21,10 +22,31 @@ export default function App() {
             <Box sx={{ flex: 1, overflow: 'hidden' }}>
                 <DataTable />
             </Box>
+
             <CommentDialog />
-            <Snackbar open={!!alert} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-                {alert ? <Alert severity={alert.severity} onClose={handleClose}>{alert.message}</Alert> : null}
+
+            <Snackbar
+                open={!!alert}
+                autoHideDuration={3000}
+                onClose={handleClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                {alert ? (
+                    <Alert severity={alert.severity} onClose={handleClose}>
+                        {alert.message}
+                    </Alert>
+                ) : null}
             </Snackbar>
         </Box>
+    );
+}
+
+export default function App() {
+    return (
+        <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={<MainLayout />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
     );
 }
